@@ -9,17 +9,12 @@ import (
 	"time"
 
 	"github.com/faroyam/auth-test-api/logger"
+	"github.com/faroyam/auth-test-api/model"
 	"github.com/faroyam/auth-test-api/response"
 	"go.uber.org/zap"
 
 	jwt "github.com/dgrijalva/jwt-go"
 )
-
-// User represents user model
-type User struct {
-	Login          string `json:"login,omitempty"`
-	HashedPassword string `json:"password,omitempty"`
-}
 
 /*
 openssl genrsa -out app.rsa 1024
@@ -31,28 +26,28 @@ var publicKey *rsa.PublicKey
 
 // init reads keys and parses it
 func init() {
-	logger.ZapLogger.Info("Reading keys")
+	logger.ZapLogger.Info("reading keys")
 	var err error
 
 	privateKeyBytes, err := ioutil.ReadFile("./keys/app.rsa")
 	if err != nil {
-		logger.ZapLogger.Fatal("Error while reading private key from file", zap.Error(err))
+		logger.ZapLogger.Fatal("error while reading private key from file", zap.Error(err))
 		return
 	}
 	privateKey, err = jwt.ParseRSAPrivateKeyFromPEM(privateKeyBytes)
 	if err != nil {
-		logger.ZapLogger.Fatal("Error while generating private key", zap.Error(err))
+		logger.ZapLogger.Fatal("error while generating private key", zap.Error(err))
 		return
 	}
 
 	publicKeyBytes, err := ioutil.ReadFile("./keys/app.rsa.pub")
 	if err != nil {
-		logger.ZapLogger.Fatal("Error while reading public key from file", zap.Error(err))
+		logger.ZapLogger.Fatal("error while reading public key from file", zap.Error(err))
 		return
 	}
 	publicKey, err = jwt.ParseRSAPublicKeyFromPEM(publicKeyBytes)
 	if err != nil {
-		logger.ZapLogger.Fatal("Error while generating public key", zap.Error(err))
+		logger.ZapLogger.Fatal("error while generating public key", zap.Error(err))
 		return
 	}
 
@@ -71,7 +66,7 @@ func Join(w http.ResponseWriter, r *http.Request) {
 func Auth(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 
-	var user User
+	var user model.User
 
 	err := json.NewDecoder(r.Body).Decode(&user)
 	if err != nil {
@@ -91,7 +86,7 @@ func Auth(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusForbidden)
 		json.NewEncoder(w).Encode(response.NewJSON(response.FAILED, "Invalid Login or Password"))
 
-		logger.ZapLogger.Info("Auth error", zap.String("User", user.Login))
+		logger.ZapLogger.Info("Auth error", zap.String("user", user.Login))
 		return
 	}
 
@@ -124,7 +119,7 @@ func AuthCheck(next http.HandlerFunc) http.HandlerFunc {
 			w.WriteHeader(http.StatusUnauthorized)
 			json.NewEncoder(w).Encode(response.NewJSON(response.FAILED, "Authorization Error"))
 
-			logger.ZapLogger.Info("Auth error", zap.Error(err))
+			logger.ZapLogger.Info("auth error", zap.Error(err))
 			return
 		}
 

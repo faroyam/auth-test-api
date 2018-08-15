@@ -9,12 +9,11 @@ import (
 )
 
 func main() {
-	//initKeys()
-	logger.ZapLogger.Info("Starting server")
+	logger.ZapLogger.Info("starting server")
 	router := routes.NewRouter()
 	err := http.ListenAndServe(":3000", router)
 	if err != nil {
-		logger.ZapLogger.Fatal("Error while starting server",
+		logger.ZapLogger.Fatal("error while starting server",
 			zap.Error(err),
 		)
 	}
