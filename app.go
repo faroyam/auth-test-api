@@ -3,6 +3,7 @@ package main
 import (
 	"net/http"
 
+	"github.com/faroyam/auth-test-api/db"
 	"github.com/faroyam/auth-test-api/logger"
 	"github.com/faroyam/auth-test-api/routes"
 	"go.uber.org/zap"
@@ -18,4 +19,5 @@ func main() {
 		)
 	}
 	defer logger.ZapLogger.Sync()
+	defer db.DB.Close()
 }

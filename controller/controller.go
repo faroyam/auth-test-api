@@ -3,11 +3,13 @@ package controller
 import (
 	"crypto/rsa"
 	"encoding/json"
+	"fmt"
 	"io/ioutil"
 	"net/http"
 	"strings"
 	"time"
 
+	"github.com/faroyam/auth-test-api/db"
 	"github.com/faroyam/auth-test-api/logger"
 	"github.com/faroyam/auth-test-api/model"
 	"github.com/faroyam/auth-test-api/response"
@@ -57,8 +59,41 @@ func init() {
 func Join(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 
-	w.WriteHeader(http.StatusOK)
-	json.NewEncoder(w).Encode(response.NewJSON(response.OK, "Not Implemented"))
+	var user = model.User{}
+
+	err := json.NewDecoder(r.Body).Decode(&user)
+	if err != nil {
+		w.WriteHeader(http.StatusForbidden)
+		json.NewEncoder(w).Encode(response.NewJSON(response.FAILED, "Request Error"))
+
+		logger.ZapLogger.Info("join request error", zap.Error(err))
+		return
+	}
+
+	if !user.Validate() {
+		w.WriteHeader(http.StatusForbidden)
+		json.NewEncoder(w).Encode(response.NewJSON(response.FAILED, "Invalid Credential"))
+		return
+	}
+
+	ok, err := db.DB.Create(user)
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		json.NewEncoder(w).Encode(response.NewJSON(response.FAILED, "Internal Error"))
+
+		logger.ZapLogger.Info("db error", zap.Error(err))
+		return
+	}
+
+	if ok {
+		w.WriteHeader(http.StatusOK)
+		json.NewEncoder(w).Encode(response.NewJSON(response.OK, fmt.Sprintf("Welcome, %s", user.Login)))
+
+		logger.ZapLogger.Info("user added", zap.String("login:", user.Login))
+		return
+	}
+	w.WriteHeader(http.StatusForbidden)
+	json.NewEncoder(w).Encode(response.NewJSON(response.FAILED, "Login Is Used"))
 	return
 }
 
@@ -66,27 +101,22 @@ func Join(w http.ResponseWriter, r *http.Request) {
 func Auth(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 
-	var user model.User
+	var user = model.User{}
 
 	err := json.NewDecoder(r.Body).Decode(&user)
 	if err != nil {
 		w.WriteHeader(http.StatusForbidden)
+		logger.ZapLogger.Info("auth request error", zap.Error(err))
 		json.NewEncoder(w).Encode(response.NewJSON(response.FAILED, "Request Error"))
 		return
 	}
 
-	if user.Login == "" || user.HashedPassword == "" {
-		w.WriteHeader(http.StatusForbidden)
-		json.NewEncoder(w).Encode(response.NewJSON(response.FAILED, "No Login or Password Specified"))
-		return
-	}
-
-	// TODO check in mgo
-	if user.Login != "admin" || user.HashedPassword != "password" {
+	err = db.DB.CheckAuth(user)
+	if err != nil {
 		w.WriteHeader(http.StatusForbidden)
 		json.NewEncoder(w).Encode(response.NewJSON(response.FAILED, "Invalid Login or Password"))
 
-		logger.ZapLogger.Info("Auth error", zap.String("user", user.Login))
+		logger.ZapLogger.Info("Auth error", zap.String("login", user.Login), zap.Error(err))
 		return
 	}
 
@@ -100,7 +130,7 @@ func Auth(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusOK)
 	json.NewEncoder(w).Encode(response.NewJSON(response.OK, tokenString))
 
-	logger.ZapLogger.Info("Auth successful", zap.String("User", user.Login))
+	logger.ZapLogger.Info("Auth successful", zap.String("login", user.Login))
 	return
 }
 

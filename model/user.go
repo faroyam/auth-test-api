@@ -11,7 +11,8 @@ import (
 type User struct {
 	ID             bson.ObjectId `json:"id" bson:"_id"`
 	Login          string        `json:"login,omitempty" bson:"login,omitempty"`
-	HashedPassword string        `json:"password,omitempty" bson:"password,omitempty"`
+	Password       string        `json:"password,omitempty" bson:"-"`
+	HashedPassword []byte        `bson:"hashed_password,omitempty"`
 	Email          string        `json:"email" bson:"email"`
 }
 
@@ -19,7 +20,7 @@ type User struct {
 func (u *User) Validate() bool {
 	username := utf8.RuneCountInString(u.Login) >= 8
 	email := strings.Contains(u.Email, "@")
-	password := utf8.RuneCountInString(u.HashedPassword) >= 8
+	password := utf8.RuneCountInString(u.Password) >= 8
 
 	return username && email && password
 }
