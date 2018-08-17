@@ -9,6 +9,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/faroyam/auth-test-api/config"
 	"github.com/faroyam/auth-test-api/db"
 	"github.com/faroyam/auth-test-api/logger"
 	"github.com/faroyam/auth-test-api/model"
@@ -31,7 +32,7 @@ func init() {
 	logger.ZapLogger.Info("reading keys")
 	var err error
 
-	privateKeyBytes, err := ioutil.ReadFile("./keys/app.rsa")
+	privateKeyBytes, err := ioutil.ReadFile(config.CFG.PrivateRSA)
 	if err != nil {
 		logger.ZapLogger.Fatal("error while reading private key from file", zap.Error(err))
 		return
@@ -42,7 +43,7 @@ func init() {
 		return
 	}
 
-	publicKeyBytes, err := ioutil.ReadFile("./keys/app.rsa.pub")
+	publicKeyBytes, err := ioutil.ReadFile(config.CFG.PublicRSA)
 	if err != nil {
 		logger.ZapLogger.Fatal("error while reading public key from file", zap.Error(err))
 		return

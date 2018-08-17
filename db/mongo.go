@@ -1,6 +1,7 @@
 package db
 
 import (
+	"github.com/faroyam/auth-test-api/config"
 	"github.com/faroyam/auth-test-api/logger"
 	"github.com/faroyam/auth-test-api/model"
 	"go.uber.org/zap"
@@ -56,9 +57,9 @@ func (d *mongo) Create(user model.User) (bool, error) {
 var DB = mongo{}
 
 func init() {
-	DB.MongoIP = "192.168.0.11"
-	DB.MongoDBName = "test-auth-api"
-	DB.MongoUserColection = "users"
+	DB.MongoIP = config.CFG.MongoIP
+	DB.MongoDBName = config.CFG.MongoDB
+	DB.MongoUserColection = config.CFG.MongoCollection
 	logger.ZapLogger.Info("connecting to db")
 	err := DB.connect()
 	if err != nil {
