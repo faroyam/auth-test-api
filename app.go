@@ -10,13 +10,13 @@ import (
 )
 
 func main() {
+	var err error
 	logger.ZapLogger.Info("starting server")
 	router := routes.NewRouter()
-	err := http.ListenAndServe(":3000", router)
+
+	err = http.ListenAndServeTLS(":8081", "keys/server.crt", "keys/server.key", router)
 	if err != nil {
-		logger.ZapLogger.Fatal("error while starting server",
-			zap.Error(err),
-		)
+		logger.ZapLogger.Fatal("error while starting https server", zap.Error(err))
 	}
 	defer logger.ZapLogger.Sync()
 	defer db.DB.Close()
