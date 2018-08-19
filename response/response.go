@@ -19,7 +19,7 @@ const (
 	FAILED = "Failed"
 
 	description = "simple auth api"
-	version     = "v1.0.1"
+	version     = "v1.1.0"
 )
 
 // NewJSON returns response data

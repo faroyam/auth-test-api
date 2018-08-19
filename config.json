@@ -1,0 +1,8 @@
+{
+    "public_rsa": "./keys/app.rsa.pub",
+	"private_rsa": "./keys/app.rsa",
+	"app_port": ":8081",
+	"mongo_ip": "192.168.0.11",
+	"mongo_db_name": "test-auth-api",
+	"mongo_collection_name": "users"
+}
