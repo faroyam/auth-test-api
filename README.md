@@ -12,9 +12,9 @@ go get github.com/faroyam/auth-test-api
 
 1. Generate SSL keys for HTTPS and JWT 
 ```
-cd keys && bash keys.sh
+bash keys.sh
 ```
 2. Run app
 ```
-cd .. && go build app.go && ./app
+go build app.go && ./app
 ```
